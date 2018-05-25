@@ -14,8 +14,10 @@
 #define STDERR 2
 #define FAIL -1
 #define ERROR_SIZE 21
+#define SUCCESS 0
 typedef struct thread_pool
 {
+    int size;
     pthread_t* threads;
     OSQueue* tasksQueue;
     int isStopped;
