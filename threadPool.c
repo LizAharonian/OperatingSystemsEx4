@@ -16,6 +16,7 @@
 //todo: allocations - if not null, handlefailure, free memory
 //declerations
 void* execute(void *arg);
+void executeTasks(void *arg);
 
 
 
@@ -61,12 +62,12 @@ void executeTasks(void *arg) {
 
 
 void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
-    if (threadPool->isStopped==FALSE) {
+    pthread_mutex_lock(&(*threadPool).lockIsStopped);
+
+
+    if (threadPool->isStopped==TRUE) {
         return;
     }
-    pthread_mutex_lock(&(*threadPool).lockQueue);
-    pthread_mutex_lock(&(*threadPool).lockIsStopped);
-    threadPool->isStopped = TRUE;
     pthread_mutex_unlock(&(*threadPool).lockIsStopped);
 
 
@@ -77,6 +78,11 @@ void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
             joinAllThreads(threadPool);
         }else {
             //todo:לבצע משימות קיימות בתור ואז joinallthreads
+            //if queue is empty - then keep running. otherwise - wait
+            sem_wait(osIsQueueEmpty(threadPool->tasksQueue));
+            //now, the queue is empty
+            joinAllThreads(threadPool);
+
 
         }
 
@@ -85,7 +91,7 @@ void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
         joinAllThreads(threadPool);
     }
 
-    pthread_mutex_unlock(&(*threadPool).lockQueue);
+    //pthread_mutex_unlock(&(*threadPool).lockQueue);
 
 
 
@@ -93,6 +99,12 @@ void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
 }
 
 void joinAllThreads(ThreadPool* threadPool) {
+    pthread_mutex_lock(&(*threadPool).lockIsStopped);
+    if (threadPool->isStopped){
+        return;
+    }
+    threadPool->isStopped = TRUE;
+    pthread_mutex_unlock(&(*threadPool).lockIsStopped);
     //indicats the thread pool is empty
     threadPool->tasksQueue->head==NULL;
     threadPool->tasksQueue->tail==NULL;
