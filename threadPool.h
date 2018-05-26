@@ -15,6 +15,10 @@
 #define FAIL -1
 #define ERROR_SIZE 21
 #define SUCCESS 0
+
+enum DestroyState {BEFORE_JOIN,AFTER_JOIN,GO};
+typedef enum destroyState {FIRST, SECOND} DestroyState;
+
 typedef struct thread_pool
 {
     int size;
@@ -24,6 +28,7 @@ typedef struct thread_pool
     pthread_mutex_t lockQueue;
     pthread_mutex_t lockIsStopped;
     void (*executeTasks)(void *);
+    DestroyState destroyState;
 
 }ThreadPool;
 
