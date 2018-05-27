@@ -34,6 +34,18 @@ void  function2Sleep();
     scanf("%d",&temp);
     return 0;
 }*/
+//מספרים מודפסים באיזה סדר שבא להם
+
+/*int main() {
+    ThreadPool* threadPool =tpCreate(3);
+    char * args = (char *)malloc(10);
+    tpInsertTask(threadPool,function1WithSleep,args);
+    tpInsertTask(threadPool,function2Sleep,args);
+    tpInsertTask(threadPool,function3,args);
+    int temp;
+    scanf("%d",&temp);
+    return 0;
+}*/
 
 //דסטרוי רגיל, חשוב לשים לב שכל הפונקציות מסתיימות לפני הדסטרוי
 /*int main() {
@@ -66,7 +78,7 @@ void  function2Sleep();
     return 0;
 }*/
 
-/*int main() {
+int main() {
     ThreadPool *threadPool = tpCreate(1);
     char *args = (char *) malloc(10);
 
@@ -78,7 +90,7 @@ void  function2Sleep();
     int temp;
     scanf("%d", &temp);
     return 0;
-}*/
+}
 
 
 void  function3() {

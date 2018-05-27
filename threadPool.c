@@ -30,6 +30,12 @@ ThreadPool* tpCreate(int numOfThreads) {
     threadPool->executeTasks = executeTasks;
     threadPool->tasksQueue = osCreateQueue();
     threadPool->destroyState = GO;
+    if (pthread_mutex_init(&threadPool->lockQueue, NULL)||pthread_mutex_init(&threadPool->lockIsEmpty, NULL)
+        ||pthread_mutex_init(&threadPool->lockIsStopped, NULL)) {
+        handleFailure();
+    }
+
+
     (*threadPool).threads =(pthread_t*) malloc(numOfThreads * sizeof(pthread_t));
     //lock is empty
     pthread_mutex_lock(&threadPool->lockIsEmpty);
@@ -73,7 +79,7 @@ void executeTasks(void *arg) {
 
             }else {
                 pthread_mutex_unlock(&(*pool).lockQueue);
-                sleep(1);
+                //sleep(1);
 
             }
             if(pool->destroyState==BEFORE_JOIN) {
@@ -134,6 +140,10 @@ void joinAllThreads(ThreadPool* threadPool) {
    // threadPool->tasksQueue->head==NULL;
     //threadPool->tasksQueue->tail==NULL;
 
+   /* if (pthread_mutex_destroy(&threadPool->lockQueue)||pthread_mutex_destroy(&threadPool->lockIsEmpty)
+        ||pthread_mutex_destroy(&threadPool->lockIsStopped)) {
+        handleFailure();
+    }*/
     for (;i<threadPool->size;i++) {
         free(threadPool->threads[i]);
     }
