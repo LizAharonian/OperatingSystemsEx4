@@ -51,7 +51,7 @@ void executeTasks(void *arg) {
         //if queue is empty - then wait. otherwise - keep running
         // sem_wait(!osIsQueueEmpty(pool->tasksQueue));
         //sem_wait();
-        pthread_mutex_trylock(&(*pool).lockQueue);
+        pthread_mutex_lock(&(*pool).lockQueue);
         if (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN) {
             if (!osIsQueueEmpty((*pool).tasksQueue)) {
                 //critical section - pop queue
@@ -59,13 +59,16 @@ void executeTasks(void *arg) {
                 pthread_mutex_unlock(&(*pool).lockQueue);
                 //perform task
                 task->function(task->args);
-                if(pool->destroyState==BEFORE_JOIN) {
-                    break;
-                }
+                free(task);
+
+
             }else {
                 pthread_mutex_unlock(&(*pool).lockQueue);
                 sleep(1);
 
+            }
+            if(pool->destroyState==BEFORE_JOIN) {
+                break;
             }
         }
     }
@@ -73,28 +76,28 @@ void executeTasks(void *arg) {
 
 
 void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
-    threadPool->destroyState=BEFORE_JOIN;
-    pthread_mutex_trylock(&(*threadPool).lockIsStopped);
-    if (threadPool->isStopped==TRUE) {
+    pthread_mutex_lock(&(*threadPool).lockIsStopped);
+    if (threadPool->isStopped == TRUE) {
         return;
     }
     pthread_mutex_unlock(&(*threadPool).lockIsStopped);
 
 
-    if (shouldWaitForTasks>0) {
-
-        if (osIsQueueEmpty(threadPool->tasksQueue)) {
-            //Wait for all running threads
-            joinAllThreads(threadPool);
-
-        }else {
-            //todo:לבצע משימות קיימות בתור ואז joinallthreads
-            //if queue is empty - then keep running. otherwise - wait
-            sem_wait(osIsQueueEmpty(threadPool->tasksQueue));
-            //now, the queue is empty
-            joinAllThreads(threadPool);
+    if (shouldWaitForTasks != 0) {
+        //if queue is empty - then keep running. otherwise - wait
+        while (1) {
+            if (osIsQueueEmpty(threadPool->tasksQueue)) {
+                break;
+            } else {
+                sleep(1);
+            }
         }
-    } else if (shouldWaitForTasks==0) {
+
+
+        //now, the queue is empty
+        joinAllThreads(threadPool);
+
+    } else if (shouldWaitForTasks == 0) {
         //Wait for all running threads
         joinAllThreads(threadPool);
     }
@@ -102,11 +105,10 @@ void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
     //pthread_mutex_unlock(&(*threadPool).lockQueue);
 
 
-
-
 }
 
 void joinAllThreads(ThreadPool* threadPool) {
+    threadPool->destroyState=BEFORE_JOIN;
 
     pthread_mutex_trylock(&(*threadPool).lockIsStopped);
     threadPool->isStopped = TRUE;
@@ -125,7 +127,7 @@ void joinAllThreads(ThreadPool* threadPool) {
     for (;i<threadPool->size;i++) {
         free(threadPool->threads[i]);
     }
-    free(threadPool->tasksQueue);
+    osDestroyQueue(threadPool->tasksQueue);
     free(threadPool);
 }
 /**
@@ -149,6 +151,7 @@ int tpInsertTask(ThreadPool* threadPool, void (*computeFunc) (void *), void* par
     }
     task->function = computeFunc;
     task->args = param;
+
     //add task to queue
     osEnqueue(threadPool->tasksQueue,task);
     return SUCCESS;

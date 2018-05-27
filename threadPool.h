@@ -17,7 +17,7 @@
 #define SUCCESS 0
 
 enum DestroyState {BEFORE_JOIN,AFTER_JOIN,GO};
-typedef enum destroyState {FIRST, SECOND} DestroyState;
+//typedef enum destroyState {FIRST, SECOND} DestroyState;
 
 typedef struct thread_pool
 {
@@ -28,7 +28,7 @@ typedef struct thread_pool
     pthread_mutex_t lockQueue;
     pthread_mutex_t lockIsStopped;
     void (*executeTasks)(void *);
-    DestroyState destroyState;
+    enum DestroyState destroyState;
 
 }ThreadPool;
 

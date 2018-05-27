@@ -6,6 +6,7 @@
 void * function1();
 void * function2();
 void * function3();
+void * function1WithSleep();
 
 
 
@@ -33,8 +34,8 @@ int main() {
     return 0;
 }*/
 
-
-int main() {
+//דסטרוי רגיל, חשוב לשים לב שכל הפונקציות מסתיימות לפני הדסטרוי
+/*int main() {
     ThreadPool *threadPool = tpCreate(3);
     char *args = (char *) malloc(10);
 
@@ -46,6 +47,32 @@ int main() {
     int temp;
     scanf("%d", &temp);
     return 0;
+}*/
+
+
+
+int main() {
+    ThreadPool *threadPool = tpCreate(1);
+    char *args = (char *) malloc(10);
+
+    tpInsertTask(threadPool, function1WithSleep, args);
+    tpInsertTask(threadPool, function2, args);
+    tpInsertTask(threadPool, function3, args);
+
+    tpDestroy(threadPool, 1);
+    int temp;
+    scanf("%d", &temp);
+    return 0;
+}
+
+
+
+void * function3() {
+    int i;
+    for(i=1; i<100;i++) {
+        printf("3\n");
+
+    }
 }
 
 void * function1() {
@@ -57,7 +84,7 @@ void * function1() {
 }
 void * function1WithSleep() {
     int i;
-    for(i=1; i<100;i++) {
+    for(i=1; i<10;i++) {
         printf("1\n");
         sleep(1);
 
@@ -78,13 +105,7 @@ void * function2Sleep() {
     }
 }
 
-void * function3() {
-    int i;
-    for(i=1; i<100;i++) {
-        printf("3\n");
 
-    }
-}
 void * function3Sleep() {
     int i;
     for(i=1; i<100;i++) {
