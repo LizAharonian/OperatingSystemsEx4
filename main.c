@@ -7,6 +7,7 @@ void  function1();
 void  function2();
 void  function3();
 void  function1WithSleep();
+void  function2Sleep();
 
 
 
@@ -22,8 +23,8 @@ void  function1WithSleep();
     return 0;
 }*/
 
-/*//מספרים מודפסים באיזה סדר שבא להם
-int main() {
+//מספרים מודפסים באיזה סדר שבא להם
+/*int main() {
     ThreadPool* threadPool =tpCreate(3);
     char * args = (char *)malloc(10);
     tpInsertTask(threadPool,function1,args);
@@ -51,20 +52,33 @@ int main() {
 
 
 
-int main() {
+/*int main() {
     ThreadPool *threadPool = tpCreate(1);
     char *args = (char *) malloc(10);
 
     tpInsertTask(threadPool, function1WithSleep, args);
-    tpInsertTask(threadPool, function2, args);
+    tpInsertTask(threadPool, function2Sleep, args);
+    tpInsertTask(threadPool, function3, args);
+
+    tpDestroy(threadPool, 0);
+    int temp;
+    scanf("%d", &temp);
+    return 0;
+}*/
+
+/*int main() {
+    ThreadPool *threadPool = tpCreate(1);
+    char *args = (char *) malloc(10);
+
+    tpInsertTask(threadPool, function1WithSleep, args);
+    tpInsertTask(threadPool, function2Sleep, args);
     tpInsertTask(threadPool, function3, args);
 
     tpDestroy(threadPool, 1);
     int temp;
     scanf("%d", &temp);
     return 0;
-}
-
+}*/
 
 
 void  function3() {
@@ -99,7 +113,7 @@ void  function2() {
 }
 void  function2Sleep() {
     int i;
-    for(i=1; i<100;i++) {
+    for(i=1; i<10;i++) {
         printf("2\n");
         sleep(1);
     }
