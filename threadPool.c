@@ -28,7 +28,7 @@ ThreadPool* tpCreate(int numOfThreads) {
     }
     threadPool->size=numOfThreads;
     threadPool->executeTasks = executeTasks;
-    threadPool->tasksQueue = (OSQueue*) malloc(sizeof(OSQueue));
+    threadPool->tasksQueue = osCreateQueue();
     threadPool->destroyState = GO;
     (*threadPool).threads =(pthread_t*) malloc(numOfThreads * sizeof(pthread_t));
     if (threadPool->threads==NULL) {

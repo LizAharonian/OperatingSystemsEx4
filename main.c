@@ -3,10 +3,10 @@
 #include <unistd.h>
 #include "threadPool.h"
 
-void * function1();
-void * function2();
-void * function3();
-void * function1WithSleep();
+void  function1();
+void  function2();
+void  function3();
+void  function1WithSleep();
 
 
 
@@ -67,7 +67,7 @@ int main() {
 
 
 
-void * function3() {
+void  function3() {
     int i;
     for(i=1; i<100;i++) {
         printf("3\n");
@@ -75,14 +75,14 @@ void * function3() {
     }
 }
 
-void * function1() {
+void  function1() {
     int i;
     for(i=1; i<100;i++) {
         printf("1\n");
 
     }
 }
-void * function1WithSleep() {
+void  function1WithSleep() {
     int i;
     for(i=1; i<10;i++) {
         printf("1\n");
@@ -91,13 +91,13 @@ void * function1WithSleep() {
     }
 }
 
-void * function2() {
+void  function2() {
     int i;
     for(i=1; i<100;i++) {
         printf("2\n");
     }
 }
-void * function2Sleep() {
+void  function2Sleep() {
     int i;
     for(i=1; i<100;i++) {
         printf("2\n");
