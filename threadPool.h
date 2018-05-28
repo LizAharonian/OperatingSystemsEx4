@@ -12,6 +12,8 @@
 #include<unistd.h>
 #include <malloc.h>
 #include <pthread.h>
+#include <malloc.h>
+#include <pthread.h>
 #include<stdio.h>
 #include<string.h>
 #include<pthread.h>
@@ -85,5 +87,11 @@ void executeTasks(void *arg);
  * prints error and exits the program.
  */
 void handleFailure();
+/**
+ * join all threads function.
+ * join the threads
+ * @param threadPool
+ */
+void joinAllThreads(ThreadPool* threadPool);
 
 #endif

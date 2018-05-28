@@ -3,12 +3,12 @@
  * 316584960.
  */
 
+
 #include "threadPool.h"
 
 
-
 ThreadPool* tpCreate(int numOfThreads) {
-
+    //memory allocation
     ThreadPool *threadPool =(ThreadPool*) malloc(sizeof(ThreadPool));
     if (threadPool == NULL) {
         handleFailure();
@@ -17,15 +17,12 @@ ThreadPool* tpCreate(int numOfThreads) {
     threadPool->executeTasks = executeTasks;
     threadPool->tasksQueue = osCreateQueue();
     threadPool->destroyState = GO;
-    if (pthread_mutex_init(&threadPool->lockQueue, NULL)||pthread_mutex_init(&threadPool->lockIsEmpty, NULL)
-        ||pthread_mutex_init(&threadPool->lockIsStopped, NULL)) {
+    (*threadPool).threads =(pthread_t*) malloc(numOfThreads * sizeof(pthread_t));
+    if (threadPool->threads==NULL) {
         handleFailure();
     }
-
-    (*threadPool).threads =(pthread_t*) malloc(numOfThreads * sizeof(pthread_t));
-    //lock is empty
-    pthread_mutex_lock(&threadPool->lockIsEmpty);
-    if (threadPool->threads==NULL) {
+    if (pthread_mutex_init(&threadPool->lockQueue, NULL)||pthread_mutex_init(&threadPool->lockIsEmpty, NULL)
+        ||pthread_mutex_init(&threadPool->lockIsStopped, NULL)) {
         handleFailure();
     }
     int i = 0;
@@ -43,17 +40,10 @@ void* execute(void *arg) {
 
 void executeTasks(void *arg) {
     ThreadPool *pool = (ThreadPool *)arg;
-    while (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN||pool->destroyState==DESTROY1) {
-        //if queue is empty - then wait. otherwise - keep running
+    while (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN) {
+        //lock mutex of queue
         pthread_mutex_lock(&(*pool).lockQueue);
-        if (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN||pool->destroyState==DESTROY1) {
-            if (osIsQueueEmpty(pool->tasksQueue)) {
-                if(pool->destroyState==DESTROY1){
-                    break;
-                }
-                pthread_mutex_lock(&pool->lockIsEmpty);
-
-            }
+        if (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN) {
             if (!osIsQueueEmpty((*pool).tasksQueue)) {
                 //critical section - pop queue
                 Task *task = (Task *) osDequeue((*pool).tasksQueue);
@@ -61,11 +51,10 @@ void executeTasks(void *arg) {
                 //perform task
                 task->function(task->args);
                 free(task);
-
             }else {
                 pthread_mutex_unlock(&(*pool).lockQueue);
+                sleep(1);
             }
-            //handle destroy
             if(pool->destroyState==BEFORE_JOIN) {
                 break;
             }
@@ -75,25 +64,37 @@ void executeTasks(void *arg) {
 
 
 void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
+    //check if destroy was already called
     pthread_mutex_lock(&(*threadPool).lockIsStopped);
     if (threadPool->isStopped == TRUE) {
         return;
     }
     pthread_mutex_unlock(&(*threadPool).lockIsStopped);
 
+
     if (shouldWaitForTasks != 0) {
-        threadPool->destroyState=DESTROY1;
+        //if queue is empty - then keep running. otherwise - wait
+        while (1) {
+            if (osIsQueueEmpty(threadPool->tasksQueue)) {
+                break;
+            } else {
+                sleep(1);
+            }
+        }
+
+
+        //now, the queue is empty
         joinAllThreads(threadPool);
 
     } else if (shouldWaitForTasks == 0) {
         //Wait for all running threads
-        threadPool->destroyState=BEFORE_JOIN;
         joinAllThreads(threadPool);
     }
 }
 
 void joinAllThreads(ThreadPool* threadPool) {
-
+    //change state
+    threadPool->destroyState=BEFORE_JOIN;
     pthread_mutex_trylock(&(*threadPool).lockIsStopped);
     threadPool->isStopped = TRUE;
     pthread_mutex_unlock(&(*threadPool).lockIsStopped);
@@ -102,26 +103,26 @@ void joinAllThreads(ThreadPool* threadPool) {
     for (;i<threadPool->size;i++) {
         pthread_join(threadPool->threads[i],NULL);
     }
+    while (!osIsQueueEmpty(threadPool->tasksQueue)) {
+        Task* task = osDequeue(threadPool->tasksQueue);
+        free(task);
+    }
     threadPool->destroyState=AFTER_JOIN;
     //free of memory allocation
-    for (;i<threadPool->size;i++) {
-        free(threadPool->threads[i]);
-    }
+    free(threadPool->threads);
     osDestroyQueue(threadPool->tasksQueue);
     free(threadPool);
 }
-
-
+/**
+ * handleFailure function.
+ * prints error and exits the program.
+ */
 void handleFailure() {
     write(STDERR, ERROR, ERROR_SIZE);
     exit(FAIL);
 }
 
 int tpInsertTask(ThreadPool* threadPool, void (*computeFunc) (void *), void* param) {
-    int isWasEmpty=FALSE;
-    if (osIsQueueEmpty(threadPool->tasksQueue)) {
-        isWasEmpty = TRUE;
-    }
     //In case on destroy was performed
     if ((*threadPool).isStopped) {
         return FAIL;
@@ -138,10 +139,6 @@ int tpInsertTask(ThreadPool* threadPool, void (*computeFunc) (void *), void* par
     pthread_mutex_lock(&threadPool->lockQueue);
     osEnqueue(threadPool->tasksQueue,task);
     pthread_mutex_unlock(&threadPool->lockQueue);
-
-    if(isWasEmpty) {
-        pthread_mutex_unlock(&threadPool->lockIsEmpty);
-    }
 
     return SUCCESS;
 
