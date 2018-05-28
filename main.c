@@ -22,8 +22,8 @@ void  function2Sleep();
     return 0;
 }*/
 
-/*//מספרים מודפסים באיזה סדר שבא להם
-int main() {
+//מספרים מודפסים באיזה סדר שבא להם
+/*int main() {
     ThreadPool* threadPool =tpCreate(3);
     char * args = (char *)malloc(10);
     tpInsertTask(threadPool,function1,args);
@@ -64,7 +64,7 @@ int main() {
 
 
 
-//////////////////////////
+/*//////////////////////////
 // דסטרוי רגיל, רק המתודה הראשונה אמורה להתבצע
 int main() {
     ThreadPool *threadPool = tpCreate(1);
@@ -78,7 +78,7 @@ int main() {
     int temp;
     scanf("%d", &temp);
     return 0;
-}
+}*/
 //דסטרוי מיוחד, יש לוודא שכל המשימות מתבצעות
 /*int main() {
     ThreadPool *threadPool = tpCreate(1);
@@ -94,8 +94,8 @@ int main() {
     return 0;
 }*/
 
-//בדיקה שאחרי שקראנו לדסטרוי לא ניתן להוסיף משימות
-/*int main() {
+/*//בדיקה שאחרי שקראנו לדסטרוי לא ניתן להוסיף משימות
+int main() {
     ThreadPool *threadPool = tpCreate(1);
     char *args = (char *) malloc(10);
 
@@ -120,6 +120,7 @@ void hello (void* a)
 }
 
 
+
 void test_thread_pool_sanity()
 {
     int i;
@@ -130,16 +131,46 @@ void test_thread_pool_sanity()
     {
         tpInsertTask(tp,hello,NULL);
     }
-    //sleep(5);
-    tpDestroy(tp,0);
+    sleep(5);
+    tpDestroy(tp,1);
 }
 int main(){
     test_thread_pool_sanity();
+    int y;
+    scanf("%d",&y);
     return 0;
 
 }
 */
 
+/*
+void hello (void* a)
+{
+    printf("hello\n");
+}
+
+
+void test_thread_pool_sanity()
+{
+    int i;
+
+    ThreadPool* tp = tpCreate(5);
+
+    for(i=0; i<5; ++i)
+    {
+        tpInsertTask(tp,hello,NULL);
+    }
+
+    tpDestroy(tp,0);
+}
+
+
+int main()
+{
+    test_thread_pool_sanity();
+
+    return 0;
+}*/
 
 
 #include <stdio.h>

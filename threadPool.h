@@ -39,6 +39,8 @@ typedef struct thread_pool
     pthread_mutex_t lockIsEmpty;
     void (*executeTasks)(void *);
     enum DestroyState destroyState;
+    //avoid
+    pthread_cond_t notify;
 
 }ThreadPool;
 

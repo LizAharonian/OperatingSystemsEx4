@@ -22,7 +22,7 @@ ThreadPool* tpCreate(int numOfThreads) {
         handleFailure();
     }
     if (pthread_mutex_init(&threadPool->lockQueue, NULL)||pthread_mutex_init(&threadPool->lockIsEmpty, NULL)
-        ||pthread_mutex_init(&threadPool->lockIsStopped, NULL)) {
+        ||pthread_mutex_init(&threadPool->lockIsStopped, NULL)||(pthread_cond_init(&(threadPool->notify), NULL))) {
         handleFailure();
     }
     int i = 0;
@@ -40,10 +40,21 @@ void* execute(void *arg) {
 
 void executeTasks(void *arg) {
     ThreadPool *pool = (ThreadPool *)arg;
-    while (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN) {
+    while (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN||pool->destroyState==DESTROY1) {
         //lock mutex of queue
+        //pthread_mutex_lock(&(*pool).lockQueue);
+        printf("busy\n");
+        while(osIsQueueEmpty(pool->tasksQueue) && (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN)) {
+            printf("before wait\n");
+            pthread_mutex_lock(&(*pool).lockQueue);
+            pthread_cond_wait(&(pool->notify), &(pool->lockQueue));
+        }
+        if(pool->destroyState==DESTROY1&&osIsQueueEmpty(pool->tasksQueue)) {
+            printf("cushilirabak\n");
+            break;
+        }
         pthread_mutex_lock(&(*pool).lockQueue);
-        if (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN) {
+        if (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN||pool->destroyState==DESTROY1) {
             if (!osIsQueueEmpty((*pool).tasksQueue)) {
                 //critical section - pop queue
                 Task *task = (Task *) osDequeue((*pool).tasksQueue);
@@ -51,50 +62,70 @@ void executeTasks(void *arg) {
                 //perform task
                 task->function(task->args);
                 free(task);
+                /*while (osIsQueueEmpty(pool->tasksQueue)) {
+                    if (pthread_cond_broadcast(&(pool->notify)) != 0) {
+                        handleFailure();
+                    }
+                }*/
             }else {
                 pthread_mutex_unlock(&(*pool).lockQueue);
-                sleep(1);
+               // sleep(1);
             }
             if(pool->destroyState==BEFORE_JOIN) {
                 break;
             }
+        }else {
+            pthread_mutex_unlock(&(*pool).lockQueue);
         }
     }
+    printf("exit while");
 }
 
 
 void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
+
+
     //check if destroy was already called
     pthread_mutex_lock(&(*threadPool).lockIsStopped);
     if (threadPool->isStopped == TRUE) {
         return;
     }
     pthread_mutex_unlock(&(*threadPool).lockIsStopped);
+    //lock queue
+    pthread_mutex_lock(&(*threadPool).lockQueue);
+    if((pthread_cond_broadcast(&(threadPool->notify)) != 0) ||
+       (pthread_mutex_unlock(&(threadPool->lockQueue)) != 0)) {
+        handleFailure();
+    }
 
 
     if (shouldWaitForTasks != 0) {
         //if queue is empty - then keep running. otherwise - wait
-        while (1) {
+        /*while (1) {
             if (osIsQueueEmpty(threadPool->tasksQueue)) {
                 break;
             } else {
                 sleep(1);
             }
-        }
-
+        }*/
+        /*while(!osIsQueueEmpty(threadPool->tasksQueue)) {
+            pthread_cond_wait(&(threadPool->notify), &(threadPool->lockQueue));
+        }*/
 
         //now, the queue is empty
+        threadPool->destroyState=DESTROY1;
         joinAllThreads(threadPool);
 
     } else if (shouldWaitForTasks == 0) {
         //Wait for all running threads
+        threadPool->destroyState=BEFORE_JOIN;
+
         joinAllThreads(threadPool);
     }
 }
 
 void joinAllThreads(ThreadPool* threadPool) {
     //change state
-    threadPool->destroyState=BEFORE_JOIN;
     pthread_mutex_trylock(&(*threadPool).lockIsStopped);
     threadPool->isStopped = TRUE;
     pthread_mutex_unlock(&(*threadPool).lockIsStopped);
@@ -138,7 +169,13 @@ int tpInsertTask(ThreadPool* threadPool, void (*computeFunc) (void *), void* par
     //add task to queue
     pthread_mutex_lock(&threadPool->lockQueue);
     osEnqueue(threadPool->tasksQueue,task);
+
+    if(pthread_cond_signal(&(threadPool->notify)) != 0) {
+        handleFailure();
+    }
+
     pthread_mutex_unlock(&threadPool->lockQueue);
+
 
     return SUCCESS;
 
