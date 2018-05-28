@@ -43,17 +43,19 @@ void executeTasks(void *arg) {
     while (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN||pool->destroyState==DESTROY1) {
         //lock mutex of queue
         //pthread_mutex_lock(&(*pool).lockQueue);
+        //handle busy waiting
         printf("busy\n");
-        while(osIsQueueEmpty(pool->tasksQueue) && (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN)) {
+        if (osIsQueueEmpty(pool->tasksQueue) && (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN)) {
             printf("before wait\n");
+            //we want to wait until there are tasks in queue
             pthread_mutex_lock(&(*pool).lockQueue);
             pthread_cond_wait(&(pool->notify), &(pool->lockQueue));
-        }
-        if(pool->destroyState==DESTROY1&&osIsQueueEmpty(pool->tasksQueue)) {
+        }else if(pool->destroyState==DESTROY1&&osIsQueueEmpty(pool->tasksQueue)) {
             printf("cushilirabak\n");
             break;
+        }else {
+            pthread_mutex_lock(&(*pool).lockQueue);
         }
-        pthread_mutex_lock(&(*pool).lockQueue);
         if (pool->destroyState==GO||pool->destroyState==BEFORE_JOIN||pool->destroyState==DESTROY1) {
             if (!osIsQueueEmpty((*pool).tasksQueue)) {
                 //critical section - pop queue

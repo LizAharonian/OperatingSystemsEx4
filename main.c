@@ -47,8 +47,8 @@ void  function2Sleep();
     return 0;
 }*/
 
-/*//דסטרוי רגיל, חשוב לשים לב שכל הפונקציות מסתיימות לפני הדסטרוי
-int main() {
+//דסטרוי רגיל, חשוב לשים לב שכל הפונקציות מסתיימות לפני הדסטרוי
+/*int main() {
     ThreadPool *threadPool = tpCreate(3);
     char *args = (char *) malloc(10);
 
@@ -64,9 +64,9 @@ int main() {
 
 
 
-/*//////////////////////////
+//////////////////////////
 // דסטרוי רגיל, רק המתודה הראשונה אמורה להתבצע
-int main() {
+/*int main() {
     ThreadPool *threadPool = tpCreate(1);
     char *args = (char *) malloc(10);
 
@@ -94,8 +94,8 @@ int main() {
     return 0;
 }*/
 
-/*//בדיקה שאחרי שקראנו לדסטרוי לא ניתן להוסיף משימות
-int main() {
+//בדיקה שאחרי שקראנו לדסטרוי לא ניתן להוסיף משימות
+/*int main() {
     ThreadPool *threadPool = tpCreate(1);
     char *args = (char *) malloc(10);
 
@@ -111,8 +111,8 @@ int main() {
     scanf("%d", &temp);
     return 0;
 }*/
-
 /*
+
 void hello (void* a)
 {
     printf("hello\n");
@@ -140,11 +140,11 @@ int main(){
     scanf("%d",&y);
     return 0;
 
-}
-*/
+}*/
 
-/*
-void hello (void* a)
+
+
+/*void hello (void* a)
 {
     printf("hello\n");
 }
