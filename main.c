@@ -66,7 +66,7 @@ void  function2Sleep();
 
 //////////////////////////
 // דסטרוי רגיל, רק המתודה הראשונה אמורה להתבצע
-/*int main() {
+int main() {
     ThreadPool *threadPool = tpCreate(1);
     char *args = (char *) malloc(10);
 
@@ -78,7 +78,7 @@ void  function2Sleep();
     int temp;
     scanf("%d", &temp);
     return 0;
-}*/
+}
 //דסטרוי מיוחד, יש לוודא שכל המשימות מתבצעות
 /*int main() {
     ThreadPool *threadPool = tpCreate(1);
