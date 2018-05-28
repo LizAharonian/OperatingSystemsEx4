@@ -10,7 +10,6 @@ void  function1WithSleep();
 void  function2Sleep();
 
 
-
 //המספרים צריכים להיות מודפסים בצורה סנכרונית, קודם 11..1 ואז 2...2 ואז 3...3
 /*int main() {
     ThreadPool* threadPool =tpCreate(1);
@@ -66,7 +65,7 @@ int main() {
 
 
 //////////////////////////
-//דסטרוי רגיל, רק המתודה הראשונה אמורה להתבצע
+// דסטרוי רגיל, רק המתודה הראשונה אמורה להתבצע
 int main() {
     ThreadPool *threadPool = tpCreate(1);
     char *args = (char *) malloc(10);
@@ -148,36 +147,7 @@ int main(){
 #include "osqueue.h"
 #include "threadPool.h"
 
-/*
 
-void hello (void* a)
-{
-    printf("hello\n");
-}
-
-
-void test_thread_pool_sanity()
-{
-    int i;
-
-    ThreadPool* tp = tpCreate(5);
-
-    for(i=0; i<5; ++i)
-    {
-        tpInsertTask(tp,hello,NULL);
-    }
-
-    tpDestroy(tp,1);
-}
-
-
-int main()
-{
-    test_thread_pool_sanity();
-
-    return 0;
-}
-*/
 
 
 
